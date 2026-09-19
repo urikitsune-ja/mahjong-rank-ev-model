@@ -46,7 +46,7 @@ rank-ev-model/
 Linux / macOS:
 
 ```bash
-python3 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
@@ -55,10 +55,30 @@ python -m pip install -r requirements.txt
 Windows（PowerShell）:
 
 ```powershell
-python -m venv .venv
+py -3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+```
+
+### uv を使用する場合（任意）
+
+uvを導入済みの場合は、次の手順でも依存ライブラリをインストールできます。
+
+Linux / macOS:
+
+```bash
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+Windows（PowerShell）:
+
+```powershell
+uv venv --python 3.12
+.venv\Scripts\Activate.ps1
+uv pip install -r requirements.txt
 ```
 
 以後、作業を再開する際は仮想環境を有効化してからコマンドを実行してください。

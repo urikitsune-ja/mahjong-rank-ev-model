@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment / secrets
+.env
+.env.*
+
+# Editor
+.vscode/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+#evaluation
+models/evaluation
+
+# Logs
+*.log
+
+# Windows metadata
+*:Zone.Identifier
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+

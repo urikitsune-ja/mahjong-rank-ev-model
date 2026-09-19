@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>順位予測モデル サンプル</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f4f6f9;
+            color: #1e293b;
+            min-height: 100vh;
+            padding: 2.5rem 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 860px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.8rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: 0.02em;
+            text-align: center;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            padding: 2.2rem 2.5rem;
+            width: 100%;
+        }
+
+        /* フォームレイアウト */
+        .form-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1.2rem;
+            width: 100%;
+        }
+
+        .input-inline {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-inline label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .input-inline input, .input-inline select {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.95rem;
+            color: #1e293b;
+            outline: none;
+            text-align: center;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-inline select {
+            padding-right: 1.8rem;
+            cursor: pointer;
+        }
+
+        .input-inline input:focus, .input-inline select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-inline input[readonly] {
+            background-color: #e2e8f0;
+            color: #475569;
+            cursor: not-allowed;
+            border-color: #cbd5e1;
+        }
+
+        .score-input {
+            width: 85px;
+        }
+
+        .num-input {
+            width: 75px;
+        }
+
+        /* ボタン群 */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-analyze {
+            background: #ffffff;
+            border: 1.5px solid #3b82f6;
+            color: #2563eb;
+            border-radius: 6px;
+            padding: 0.55rem 2.8rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-analyze:hover {
+            background-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        /* 結果テーブルセクション */
+        .result-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            text-align: right;
+        }
+
+        .result-table th {
+            font-weight: 700;
+            color: #0f172a;
+            padding: 0.85rem 1rem;
+            border-bottom: 2px solid #334155;
+            white-space: nowrap;
+        }
+
+        .result-table td {
+            padding: 0.9rem 1rem;
+            color: #1e293b;
+            white-space: nowrap;
+        }
+
+        .result-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .result-table td:first-child, .result-table th:first-child {
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .val-positive {
+            color: #16a34a;
+            font-weight: 700;
+        }
+
+        .val-negative {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .status-msg {
+            font-size: 0.9rem;
+            color: #ef4444;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <h1 class="page-title">順位予測モデル サンプル</h1>
+
+    <div class="card">
+        <form id="predict-form" class="form-layout">
+            <!-- 1行目: 局, 本場, 供託 -->
+            <div class="form-row">
+                <div class="input-inline">
+                    <label for="round_name">局:</label>
+                    <select id="round_name" name="round_name" required>
+                        <option value="東一" selected>東一局</option>
+                        <option value="東二">東二局</option>
+                        <option value="東三">東三局</option>
+                        <option value="東四">東四局</option>
+                        <option value="南一">南一局</option>
+                        <option value="南二">南二局</option>
+                        <option value="南三">南三局</option>
+                        <option value="南四">南四局</option>
+                    </select>
+                </div>
+
+                <div class="input-inline">
+                    <label for="honba">本場:</label>
+                    <input type="number" id="honba" name="honba" min="0" value="0" class="num-input" required>
+                </div>
+
+                <div class="input-inline">
+                    <label for="kyotaku">供託:</label>
+                    <input type="number" id="kyotaku" name="kyotaku" min="0" value="0" class="num-input" required>
+                </div>
+            </div>
+
+            <!-- 2行目: 各家の点数 (100点単位) -->
+            <div class="form-row" id="scores-container">
+                <div class="input-inline" id="box-score-e">
+                    <label id="lbl-score-e" for="score_e">東家:</label>
+                    <input type="number" id="score_e" name="score_e" value="250" class="score-input" required>
+                </div>
+
+                <div class="input-inline" id="box-score-s">
+                    <label id="lbl-score-s" for="score_s">南家:</label>
+                    <input type="number" id="score_s" name="score_s" value="250" class="score-input" required>
+                </div>
+
+                <div class="input-inline" id="box-score-w">
+                    <label id="lbl-score-w" for="score_w">西家:</label>
+                    <input type="number" id="score_w" name="score_w" value="250" class="score-input" required>
+                </div>
+
+                <div class="input-inline" id="box-score-n">
+                    <label id="lbl-score-n" for="score_n">北家:</label>
+                    <input type="number" id="score_n" name="score_n" value="250" class="score-input" readonly required>
+                </div>
+            </div>
+
+            <!-- 3行目: ボタン群 -->
+            <div class="button-group">
+                <button type="submit" class="btn-analyze">実行</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 結果セクション -->
+    <div class="card result-section">
+        <h2 class="result-title">局開始時の最終順位確率とptEV</h2>
+        <div id="status-msg" class="status-msg"></div>
+
+        <div class="table-wrapper">
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th style="width: 22%;"></th>
+                        <th style="width: 13%;">1st(%)</th>
+                        <th style="width: 13%;">2nd</th>
+                        <th style="width: 13%;">3rd</th>
+                        <th style="width: 13%;">4th</th>
+                        <th style="width: 13%;">7段ptEV</th>
+                        <th style="width: 13%;">9段ptEV</th>
+                    </tr>
+                </thead>
+                <tbody id="result-tbody">
+                    <!-- JavaScript で動的に表行をロード -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('predict-form');
+    const roundSelect = document.getElementById('round_name');
+    const resultTbody = document.getElementById('result-tbody');
+    const statusMsg = document.getElementById('status-msg');
+
+    const scoreEInput = document.getElementById('score_e');
+    const scoreSInput = document.getElementById('score_s');
+    const scoreWInput = document.getElementById('score_w');
+    const scoreNInput = document.getElementById('score_n');
+    const kyotakuInput = document.getElementById('kyotaku');
+
+    const scoreInputs = [scoreEInput, scoreSInput, scoreWInput, scoreNInput];
+    const seatLabels = ["東家", "南家", "西家", "北家"];
+
+    function getOyaIndex() {
+        const roundMap = {
+            "東一": 0, "東二": 1, "東三": 2, "東四": 3,
+            "南一": 0, "南二": 1, "南三": 2, "南四": 3,
+            "西一": 0, "西二": 1, "西三": 2, "西四": 3
+        };
+        return roundMap[roundSelect.value] !== undefined ? roundMap[roundSelect.value] : 0;
+    }
+
+    // 一番右のプレイヤーの点数自動計算 (1000 - 左3人の合計 - 供託*10)
+    function updateRightmostScore() {
+        const oyaIndex = getOyaIndex();
+        const rightmostSeat = (3 - oyaIndex + 4) % 4;
+        const kyotaku = parseInt(kyotakuInput.value, 10) || 0;
+
+        let sumOtherScores = 0;
+        for (let p = 0; p < 4; p++) {
+            if (p !== rightmostSeat) {
+                sumOtherScores += parseInt(scoreInputs[p].value, 10) || 0;
+            }
+        }
+
+        const rightmostScore = 1000 - sumOtherScores - (kyotaku * 10);
+        scoreInputs[rightmostSeat].value = rightmostScore;
+    }
+
+    [...scoreInputs, kyotakuInput].forEach(input => {
+        input.addEventListener('input', updateRightmostScore);
+        input.addEventListener('change', updateRightmostScore);
+    });
+
+    function updateOyaLabels() {
+        const oyaIndex = getOyaIndex();
+        const rightmostSeat = (3 - oyaIndex + 4) % 4;
+
+        document.getElementById('lbl-score-e').textContent = seatLabels[0] + ":";
+        document.getElementById('lbl-score-s').textContent = seatLabels[1] + ":";
+        document.getElementById('lbl-score-w').textContent = seatLabels[2] + ":";
+        document.getElementById('lbl-score-n').textContent = seatLabels[3] + ":";
+
+        // 入力ボックスの回転 (画面左から順に i=0..3 に該当する seatIdx を配置)
+        const scoresContainer = document.getElementById('scores-container');
+        const boxIds = ['box-score-e', 'box-score-s', 'box-score-w', 'box-score-n'];
+
+        for (let i = 0; i < 4; i++) {
+            const seatIdx = (i - oyaIndex + 4) % 4;
+            const box = document.getElementById(boxIds[seatIdx]);
+            if (box) {
+                scoresContainer.appendChild(box);
+            }
+        }
+
+        // 一番右端のプレイヤー (rightmostSeat) のみ readonly に設定
+        for (let p = 0; p < 4; p++) {
+            if (p === rightmostSeat) {
+                scoreInputs[p].readOnly = true;
+            } else {
+                scoreInputs[p].readOnly = false;
+            }
+        }
+
+        updateRightmostScore();
+    }
+
+    roundSelect.addEventListener('change', updateOyaLabels);
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        statusMsg.textContent = '';
+
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch('/api/predict_rank_manual', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({ detail: res.statusText }));
+                statusMsg.textContent = `エラー (${res.status}): ${errData.detail || errData.message || '予測リクエストに失敗しました'}`;
+                return;
+            }
+
+            const data = await res.json();
+            renderTable(data.results, data.round_name);
+        } catch (err) {
+            statusMsg.textContent = `通信エラー: ${err.message}`;
+        }
+    });
+
+    function renderTable(results, roundName) {
+        resultTbody.innerHTML = '';
+
+        const roundMap = {
+            "東一": 0, "東二": 1, "東三": 2, "東四": 3,
+            "南一": 0, "南二": 1, "南三": 2, "南四": 3,
+            "西一": 0, "西二": 1, "西三": 2, "西四": 3
+        };
+        const oyaIndex = roundMap[roundName] !== undefined ? roundMap[roundName] : 0;
+
+        const resultsMap = {};
+        results.forEach(res => {
+            resultsMap[res.seat] = res;
+        });
+
+        for (let i = 0; i < 4; i++) {
+            const seat = (i - oyaIndex + 4) % 4;
+            const res = resultsMap[seat];
+            if (!res) continue;
+
+            const tr = document.createElement('tr');
+            const seatName = seatLabels[res.seat];
+
+            const p1 = (res.probs[0] * 100).toFixed(2);
+            const p2 = (res.probs[1] * 100).toFixed(2);
+            const p3 = (res.probs[2] * 100).toFixed(2);
+            const p4 = (res.probs[3] * 100).toFixed(2);
+
+            const ev7Formatted = (res.ev_7 >= 0 ? `+${res.ev_7.toFixed(2)}` : res.ev_7.toFixed(2));
+            const ev9Formatted = (res.ev_9 >= 0 ? `+${res.ev_9.toFixed(2)}` : res.ev_9.toFixed(2));
+
+            const ev7Class = res.ev_7 >= 0 ? 'val-positive' : 'val-negative';
+            const ev9Class = res.ev_9 >= 0 ? 'val-positive' : 'val-negative';
+
+            tr.innerHTML = `
+                <td>${seatName}</td>
+                <td>${p1}</td>
+                <td>${p2}</td>
+                <td>${p3}</td>
+                <td>${p4}</td>
+                <td class="${ev7Class}">${ev7Formatted}</td>
+                <td class="${ev9Class}">${ev9Formatted}</td>
+            `;
+
+            resultTbody.appendChild(tr);
+        }
+    }
+
+    updateOyaLabels();
+    form.dispatchEvent(new Event('submit'));
+</script>
+
+</body>
+</html>
